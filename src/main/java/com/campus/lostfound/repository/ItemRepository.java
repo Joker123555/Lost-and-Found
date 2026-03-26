@@ -37,8 +37,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     List<Item> findByIsDeletedAndStatusAndType(int isDeleted, int status, int type);
 
-    @Query("SELECT i FROM Item i WHERE i.isDeleted = 0 AND (:type IS NULL OR i.type = :type) AND (:keyword IS NULL OR :keyword = '' OR i.title LIKE CONCAT('%', :keyword, '%')) AND (:status IS NULL OR i.status = :status)")
-    Page<Item> adminBrowse(@Param("type") Integer type, @Param("keyword") String keyword, @Param("status") Integer status, Pageable pageable);
+    @Query("SELECT i FROM Item i WHERE i.isDeleted = 0 AND (:type IS NULL OR i.type = :type) AND (:keyword IS NULL OR :keyword = '' OR i.title LIKE CONCAT('%', :keyword, '%')) AND (:contactName IS NULL OR :contactName = '' OR i.contactName LIKE CONCAT('%', :contactName, '%')) AND (:categoryId IS NULL OR i.categoryId = :categoryId) AND (:status IS NULL OR i.status = :status)")
+    Page<Item> adminBrowse(@Param("type") Integer type, @Param("keyword") String keyword, @Param("contactName") String contactName, @Param("categoryId") Long categoryId, @Param("status") Integer status, Pageable pageable);
 
     @Query("SELECT i FROM Item i WHERE i.isDeleted = 0 AND i.status = 1 AND i.createdAt < :before")
     List<Item> findPublishedBefore(@Param("before") java.time.LocalDateTime before);

@@ -30,17 +30,38 @@ public class MatchQueryService {
         Long uid = UserContext.getUserId();
         long minePublished =
                 itemRepository.countByUserIdAndIsDeletedAndStatus(uid, 0, ItemStatus.PUBLISHED);
-        BigDecimal threshold =
+        BigDecimal baseThreshold =
                 new BigDecimal(
                         systemConfigRepository
-                                .findById("match.score.threshold")
+                                .findById("match.threshold.base")
                                 .map(SystemConfig::getConfigValue)
-                                .orElse("60"));
-        return Map.of("minePublishedCount", minePublished, "threshold", threshold);
+                                .orElseGet(
+                                        () ->
+                                                systemConfigRepository
+                                                        .findById("match.score.threshold")
+                                                        .map(SystemConfig::getConfigValue)
+                                                        .orElse("60")));
+        BigDecimal highThreshold =
+                new BigDecimal(
+                        systemConfigRepository
+                                .findById("match.threshold.high")
+                                .map(SystemConfig::getConfigValue)
+                                .orElse("80"));
+        return Map.of(
+                "minePublishedCount", minePublished,
+                "threshold", baseThreshold,
+                "baseThreshold", baseThreshold,
+                "highThreshold", highThreshold);
     }
 
     public List<Map<String, Object>> myMatches() {
         Long uid = UserContext.getUserId();
+        BigDecimal highThreshold =
+                new BigDecimal(
+                        systemConfigRepository
+                                .findById("match.threshold.high")
+                                .map(SystemConfig::getConfigValue)
+                                .orElse("80"));
         // 仅使用已上架的数据做匹配列表（前置条件：至少发布一条寻物/招领）
         List<Item> mine =
                 itemRepository
@@ -70,6 +91,7 @@ public class MatchQueryService {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("matchId", m.getId());
             row.put("score", m.getScore());
+            row.put("level", m.getScore().compareTo(highThreshold) >= 0 ? "high" : "suggested");
             row.put("selfItem", toBrief(self));
             row.put("otherItem", toBrief(other));
             row.put("otherUser", userBrief(other.getUserId()));
@@ -95,6 +117,13 @@ public class MatchQueryService {
         Item other = lost.getUserId().equals(uid) ? found : lost;
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("score", m.getScore());
+        BigDecimal highThreshold =
+                new BigDecimal(
+                        systemConfigRepository
+                                .findById("match.threshold.high")
+                                .map(SystemConfig::getConfigValue)
+                                .orElse("80"));
+        map.put("level", m.getScore().compareTo(highThreshold) >= 0 ? "high" : "suggested");
         map.put("selfItem", detail(self));
         map.put("otherItem", detail(other));
         map.put("otherUser", userBrief(other.getUserId()));

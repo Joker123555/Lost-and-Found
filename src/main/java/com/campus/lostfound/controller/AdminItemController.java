@@ -36,11 +36,13 @@ public class AdminItemController {
     @GetMapping("/browse")
     public ApiResult<Page<java.util.Map<String, Object>>> browse(@RequestParam int type,
                                                                  @RequestParam(required = false) String keyword,
+                                                                 @RequestParam(required = false) String contactName,
+                                                                 @RequestParam(required = false) Long categoryId,
                                                                  @RequestParam(required = false) Integer status,
                                                                  @RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size) {
         adminGuard.requireAdmin();
-        return ApiResult.ok(adminItemService.browse(type, keyword, status, page, size));
+        return ApiResult.ok(adminItemService.browse(type, keyword, contactName, categoryId, status, page, size));
     }
 
     @DeleteMapping("/{id}")

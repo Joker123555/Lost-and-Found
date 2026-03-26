@@ -34,9 +34,10 @@ public class AdminItemService {
         return itemRepository.findPending(type, from, to, PageRequest.of(page, size));
     }
 
-    public Page<Map<String, Object>> browse(Integer type, String keyword, Integer status, int page, int size) {
+    public Page<Map<String, Object>> browse(Integer type, String keyword, String contactName, Long categoryId, Integer status, int page, int size) {
         String kw = keyword == null || keyword.isBlank() ? null : keyword.trim();
-        Page<Item> p = itemRepository.adminBrowse(type, kw, status, PageRequest.of(page, size));
+        String contact = contactName == null || contactName.isBlank() ? null : contactName.trim();
+        Page<Item> p = itemRepository.adminBrowse(type, kw, contact, categoryId, status, PageRequest.of(page, size));
         Map<Long, String> cats = categoryRepository.findAll().stream()
                 .collect(Collectors.toMap(Category::getId, Category::getName, (a, b) -> a));
         return p.map(item -> toAdminRow(item, cats));

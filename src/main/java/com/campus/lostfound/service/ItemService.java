@@ -10,6 +10,7 @@ import com.campus.lostfound.config.AppProperties;
 import com.campus.lostfound.repository.CategoryRepository;
 import com.campus.lostfound.repository.ItemImageRepository;
 import com.campus.lostfound.repository.ItemRepository;
+import com.campus.lostfound.repository.UserRepository;
 import com.campus.lostfound.security.UserContext;
 import com.campus.lostfound.support.AfterCommitRunner;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final ItemImageRepository itemImageRepository;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
     private final AfterCommitRunner afterCommitRunner;
     private final MatchAsyncService matchAsyncService;
     private final AppProperties appProperties;
@@ -81,6 +83,8 @@ public class ItemService {
         m.put("item", it);
         m.put("images", imgs);
         m.put("categoryName", categoryName);
+        String ownerNickname = userRepository.findById(it.getUserId()).map(u -> u.getNickname()).orElse("");
+        m.put("ownerNickname", ownerNickname);
         return m;
     }
 
