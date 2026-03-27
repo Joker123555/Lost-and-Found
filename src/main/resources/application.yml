@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8080
   servlet:
     context-path: /
@@ -31,19 +31,20 @@ app:
     user-expire-days: 7
     admin-expire-hours: 24
   upload-dir: D:/java/yg/uploads
-  public-base-url: http://localhost:8080
+  public-base-url: http://192.168.3.183:8080
   wechat:
     app-id: ${WECHAT_APP_ID:wx077db7cf021664ac}
     app-secret: ${WECHAT_APP_SECRET:cd36453c11ba307137392e705071009d}
-  # 必须写成 YAML 列表，不能写成一行逗号分隔字符串，否则无法正确绑定为 List<String>
+  # 蹇呴』鍐欐垚 YAML 鍒楄〃锛屼笉鑳藉啓鎴愪竴琛岄€楀彿鍒嗛殧瀛楃涓诧紝鍚﹀垯鏃犳硶姝ｇ‘缁戝畾涓?List<String>
   cors:
     allowed-origins:
       - http://localhost:5173
       - http://127.0.0.1:5173
-  # 物品发布：false 时提交后直接上架（首页可见）；true 时需管理员在后台「待审核」中通过后才展示
+  # 鐗╁搧鍙戝竷锛歠alse 鏃舵彁浜ゅ悗鐩存帴涓婃灦锛堥椤靛彲瑙侊級锛泃rue 鏃堕渶绠＄悊鍛樺湪鍚庡彴銆屽緟瀹℃牳銆嶄腑閫氳繃鍚庢墠灞曠ず
   items:
     require-audit: true
 
 logging:
   level:
     com.campus: INFO
+

@@ -36,9 +36,6 @@ public class ClaimService {
         Long uid = UserContext.getUserId();
         Item it = itemRepository.findById(itemId).orElseThrow(() -> new BusinessException("物品不存在"));
         if (it.getIsDeleted() != null && it.getIsDeleted() == 1) throw new BusinessException("物品不存在");
-        if (it.getType() == null || it.getType() != 1) {
-            throw new BusinessException("仅可对失物招领信息发起认领");
-        }
         if (it.getStatus() == null || it.getStatus() != ItemStatus.PUBLISHED) {
             throw new BusinessException("抱歉，该物品已被认领或不可认领");
         }
