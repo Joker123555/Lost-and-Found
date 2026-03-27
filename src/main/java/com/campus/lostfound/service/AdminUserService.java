@@ -42,6 +42,7 @@ public class AdminUserService {
                 .phone(req.getPhone())
                 .password(passwordEncoder.encode(req.getPassword()))
                 .nickname(req.getNickname().trim())
+                .userType(0)
                 .role(role)
                 .status(status)
                 .failedLogin(0)

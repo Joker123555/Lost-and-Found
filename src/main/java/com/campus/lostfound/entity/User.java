@@ -53,6 +53,10 @@ public class User {
     @Column(name = "is_deleted", nullable = false)
     private Integer isDeleted;
 
+    /** 0=普通用户，1=微信用户（注册时选择；微信登录创建的账号为1） */
+    @Column(name = "user_type", nullable = false)
+    private Integer userType;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -69,6 +73,9 @@ public class User {
         if (status == null) status = 0;
         if (failedLogin == null) failedLogin = 0;
         if (isDeleted == null) isDeleted = 0;
+        if (userType == null) {
+            userType = (openid != null && !openid.isBlank()) ? 1 : 0;
+        }
     }
 
     @PreUpdate

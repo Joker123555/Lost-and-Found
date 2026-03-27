@@ -22,11 +22,15 @@ public class UserProfileService {
 
     public Map<String, Object> me() {
         User u = userRepository.findById(UserContext.getUserId()).orElseThrow();
+        int ut = u.getUserType() == null ? 0 : u.getUserType();
+        boolean isWx = ut == 1 || (u.getOpenid() != null && !u.getOpenid().isBlank());
         return Map.of(
                 "id", u.getId(),
                 "nickname", u.getNickname(),
                 "avatarUrl", u.getAvatarUrl() == null ? "" : u.getAvatarUrl(),
                 "account", u.getAccount() == null ? "" : u.getAccount(),
+                "userType", ut,
+                "isWxUser", isWx,
                 "phone", u.getPhone() == null ? "" : u.getPhone(),
                 "role", u.getRole() == null ? 0 : u.getRole(),
                 "hasPassword", u.getPassword() != null && !u.getPassword().isBlank()

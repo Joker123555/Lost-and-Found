@@ -47,10 +47,14 @@ public class AuthService {
 
     @Transactional
     public TokenResponse register(RegisterRequest req) {
-        String acc = req.getAccount().trim();
-        if (userRepository.findByAccountAndIsDeleted(acc, 0).isPresent()) {
-            throw new BusinessException("账号已存在");
-        }
+      Integer wantType = req.getUserType();
+      if (wantType != null && wantType == 1) {
+          throw new BusinessException("微信用户请返回登录页，使用「微信登录」完成注册");
+      }
+      String acc = req.getAccount().trim();
+      if (userRepository.findByAccountAndIsDeleted(acc, 0).isPresent()) {
+          throw new BusinessException("账号已存在");
+      }
         String nick = (req.getNickname() != null && !req.getNickname().isBlank())
                 ? req.getNickname().trim()
                 : ("用户" + acc.substring(0, Math.min(4, acc.length())));
@@ -58,6 +62,7 @@ public class AuthService {
                 .account(acc)
                 .password(passwordEncoder.encode(req.getPassword()))
                 .nickname(nick)
+                .userType(0)
                 .role(0)
                 .status(0)
                 .failedLogin(0)
@@ -106,6 +111,7 @@ public class AuthService {
             User nu = User.builder()
                     .openid(openid)
                     .nickname("微信用户")
+                    .userType(1)
                     .role(0)
                     .status(0)
                     .failedLogin(0)
@@ -116,6 +122,7 @@ public class AuthService {
         if (u.getStatus() != null && u.getStatus() == 1) {
             throw new BusinessException("账号已封禁");
         }
+        u.setUserType(1);
 
         if (req.getNickname() != null && !req.getNickname().isBlank()) {
             u.setNickname(req.getNickname().trim());

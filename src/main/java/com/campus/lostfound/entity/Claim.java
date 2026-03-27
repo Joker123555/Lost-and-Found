@@ -30,6 +30,21 @@ public class Claim {
     @Column(nullable = false)
     private Integer status;
 
+    @Column(name = "reject_reason", length = 512)
+    private String rejectReason;
+
+    @Column(name = "processed_by")
+    private Long processedBy;
+
+    @Column(name = "processed_at")
+    private LocalDateTime processedAt;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
+    @Column(name = "chat_session_id")
+    private Long chatSessionId;
+
     @Version
     @Column(nullable = false)
     private Integer version;

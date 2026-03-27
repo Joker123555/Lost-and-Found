@@ -34,6 +34,7 @@ public class AdminInitConfig {
                     .account("admin")
                     .password(enc.encode("Admin12345"))
                     .nickname("系统管理员")
+                    .userType(0)
                     .role(1)
                     .status(0)
                     .failedLogin(0)
