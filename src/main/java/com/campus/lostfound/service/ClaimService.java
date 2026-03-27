@@ -99,6 +99,36 @@ public class ClaimService {
         claimRepository.save(c);
     }
 
+    @Transactional
+    public void withdraw(long claimId) {
+        Long uid = UserContext.getUserId();
+        Claim c = claimRepository.findById(claimId).orElseThrow(() -> new BusinessException("记录不存在"));
+        if (c.getIsDeleted() != null && c.getIsDeleted() == 1) throw new BusinessException("记录不存在");
+        if (!uid.equals(c.getClaimantId())) throw new BusinessException("无权限");
+        if (c.getStatus() == null || c.getStatus() != 0) throw new BusinessException("仅待确认状态可撤回");
+        c.setIsDeleted(1);
+        claimRepository.save(c);
+    }
+
+    @Transactional
+    public void complete(long claimId) {
+        Long uid = UserContext.getUserId();
+        Claim c = claimRepository.findById(claimId).orElseThrow(() -> new BusinessException("记录不存在"));
+        if (c.getIsDeleted() != null && c.getIsDeleted() == 1) throw new BusinessException("记录不存在");
+        if (c.getStatus() == null || c.getStatus() != 1) throw new BusinessException("仅已同意状态可标记完成");
+        Item it = itemRepository.findById(c.getItemId()).orElseThrow(() -> new BusinessException("物品不存在"));
+        boolean isOwner = uid.equals(it.getUserId());
+        boolean isClaimant = uid.equals(c.getClaimantId());
+        if (!isOwner && !isClaimant) throw new BusinessException("无权限");
+        c.setStatus(3);
+        c.setCompletedAt(LocalDateTime.now());
+        c.setProcessedAt(LocalDateTime.now());
+        claimRepository.save(c);
+        // 完成后将物品下架，形成业务闭环
+        it.setStatus(ItemStatus.OFFLINE);
+        itemRepository.save(it);
+    }
+
     public Page<Claim> myClaims(int page, int size) {
         return claimRepository.findByClaimantIdAndIsDeleted(UserContext.getUserId(), 0, PageRequest.of(page, size));
     }

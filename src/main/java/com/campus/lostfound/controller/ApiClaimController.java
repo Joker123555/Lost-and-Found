@@ -35,6 +35,18 @@ public class ApiClaimController {
         return ApiResult.ok();
     }
 
+    @PostMapping("/{id}/withdraw")
+    public ApiResult<Void> withdraw(@PathVariable long id) {
+        claimService.withdraw(id);
+        return ApiResult.ok();
+    }
+
+    @PostMapping("/{id}/complete")
+    public ApiResult<Void> complete(@PathVariable long id) {
+        claimService.complete(id);
+        return ApiResult.ok();
+    }
+
     @GetMapping("/mine")
     public ApiResult<Page<Claim>> mine(@RequestParam(defaultValue = "0") int page,
                                          @RequestParam(defaultValue = "10") int size) {

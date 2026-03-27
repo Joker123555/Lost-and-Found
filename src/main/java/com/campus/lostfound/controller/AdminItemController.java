@@ -1,7 +1,9 @@
 package com.campus.lostfound.controller;
 
 import com.campus.lostfound.common.ApiResult;
+import com.campus.lostfound.dto.ItemRequest;
 import com.campus.lostfound.entity.Item;
+import jakarta.validation.Valid;
 import com.campus.lostfound.service.AdminGuard;
 import com.campus.lostfound.service.AdminItemService;
 import com.campus.lostfound.service.ItemService;
@@ -50,6 +52,12 @@ public class AdminItemController {
         adminGuard.requireAdmin();
         adminItemService.softDelete(id);
         return ApiResult.ok();
+    }
+
+    @PutMapping("/{id}")
+    public ApiResult<Item> update(@PathVariable long id, @Valid @RequestBody ItemRequest req) {
+        adminGuard.requireAdmin();
+        return ApiResult.ok(adminItemService.updateByAdmin(id, req));
     }
 
     @GetMapping("/detail/{id}")

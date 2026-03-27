@@ -21,10 +21,11 @@ public class AdminUserController {
 
     @GetMapping
     public ApiResult<Page<User>> list(@RequestParam(required = false) String keyword,
+                                      @RequestParam(required = false) Integer userType,
                                       @RequestParam(defaultValue = "0") int page,
                                       @RequestParam(defaultValue = "20") int size) {
         adminGuard.requireAdmin();
-        return ApiResult.ok(adminUserService.list(keyword, page, size));
+        return ApiResult.ok(adminUserService.list(keyword, userType, page, size));
     }
 
     @PostMapping

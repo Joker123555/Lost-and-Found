@@ -1,6 +1,7 @@
 package com.campus.lostfound.service;
 
 import com.campus.lostfound.common.ItemStatus;
+import com.campus.lostfound.dto.ItemRequest;
 import com.campus.lostfound.entity.Category;
 import com.campus.lostfound.entity.Item;
 import com.campus.lostfound.entity.ItemImage;
@@ -76,6 +77,27 @@ public class AdminItemService {
     }
 
     @Transactional
+    public Item updateByAdmin(long itemId, ItemRequest req) {
+        Item it = itemRepository.findById(itemId).orElseThrow(() -> new BusinessException("物品不存在"));
+        if (it.getIsDeleted() != null && it.getIsDeleted() == 1) throw new BusinessException("物品不存在");
+        it.setType(req.getType());
+        it.setCategoryId(req.getCategoryId());
+        it.setTitle(req.getTitle().trim());
+        it.setDescription(req.getDescription().trim());
+        it.setLocation(req.getLocation().trim());
+        it.setHappenedAt(req.getHappenedAt());
+        it.setContactName(req.getContactName().trim());
+        it.setContactPhone(req.getContactPhone().trim());
+        it = itemRepository.save(it);
+        if (req.getImageUrls() != null) {
+            itemImageRepository.deleteByItemId(itemId);
+            saveImages(itemId, req.getImageUrls());
+        }
+        afterCommitRunner.runAfterCommit(matchAsyncService::recomputeAllLater);
+        return it;
+    }
+
+    @Transactional
     public void approve(long itemId) {
         Item it = itemRepository.findById(itemId).orElseThrow(() -> new BusinessException("物品不存在"));
         if (it.getStatus() != ItemStatus.PENDING) throw new BusinessException("当前状态不可审核");
@@ -93,5 +115,15 @@ public class AdminItemService {
         it.setStatus(ItemStatus.REJECTED);
         it.setRejectReason(reason);
         itemRepository.save(it);
+    }
+
+    private void saveImages(long itemId, java.util.List<String> urls) {
+        if (urls == null) return;
+        int order = 0;
+        for (String u : urls) {
+            if (u == null || u.isBlank()) continue;
+            if (order >= 6) break;
+            itemImageRepository.save(ItemImage.builder().itemId(itemId).imageUrl(u).sortOrder(order++).build());
+        }
     }
 }

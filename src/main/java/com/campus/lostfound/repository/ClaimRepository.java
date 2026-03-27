@@ -32,4 +32,7 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
     @Query("SELECT c FROM Claim c WHERE c.status = 0 AND c.createdAt < :before")
     List<Claim> findPendingClaimsOlderThan(@Param("before") java.time.LocalDateTime before);
+
+    @Query("SELECT COUNT(c.id) FROM Claim c WHERE c.isDeleted = 0 AND c.status IN :statuses")
+    long countSuccessByStatuses(@Param("statuses") List<Integer> statuses);
 }

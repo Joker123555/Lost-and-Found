@@ -22,7 +22,7 @@ public class ApiUserController {
 
     @PutMapping("/me")
     public ApiResult<Void> update(@RequestBody ProfileBody body) {
-        userProfileService.updateProfile(body.getNickname(), body.getAvatarUrl());
+        userProfileService.updateProfile(body.getNickname(), body.getAvatarUrl(), body.getPhone());
         return ApiResult.ok();
     }
 
@@ -36,6 +36,7 @@ public class ApiUserController {
     public static class ProfileBody {
         private String nickname;
         private String avatarUrl;
+        private String phone;
     }
 
     @Data

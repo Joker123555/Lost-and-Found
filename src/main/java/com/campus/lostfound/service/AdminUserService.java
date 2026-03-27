@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.security.SecureRandom;
 import java.util.List;
 
 @Service
@@ -26,29 +27,51 @@ public class AdminUserService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final SecureRandom secureRandom = new SecureRandom();
 
-    public Page<User> list(String kw, int page, int size) {
-        return userRepository.search(kw == null ? "" : kw, PageRequest.of(page, size));
+    public Page<User> list(String kw, Integer userType, int page, int size) {
+        Integer type = (userType != null && (userType == 0 || userType == 1)) ? userType : null;
+        return userRepository.searchByUserType(kw == null ? "" : kw, type, PageRequest.of(page, size));
     }
 
     @Transactional
     public User create(AdminUserCreateRequest req) {
         if (userRepository.countActiveByPhone(req.getPhone()) > 0) {
-            throw new BusinessException("手机号已存在");
+            throw new BusinessException("已有绑定账号");
+        }
+        int userType = req.getUserType() == 1 ? 1 : 0;
+        String openid = req.getOpenid() == null ? "" : req.getOpenid().trim();
+        if (userType == 1) {
+            // 管理员创建微信用户时统一由系统生成固定格式 openid，避免手填与真实微信 openid 冲突
+            openid = generateAdminWechatOpenid();
+        } else {
+            openid = null;
         }
         int role = (req.getRole() != null && req.getRole() == 1) ? 1 : 0;
         int status = (req.getStatus() != null && req.getStatus() == 1) ? 1 : 0;
         User u = User.builder()
+                .openid(openid)
                 .phone(req.getPhone())
                 .password(passwordEncoder.encode(req.getPassword()))
                 .nickname(req.getNickname().trim())
-                .userType(0)
+                .userType(userType)
                 .role(role)
                 .status(status)
                 .failedLogin(0)
                 .isDeleted(0)
                 .build();
         return userRepository.save(u);
+    }
+
+    private String generateAdminWechatOpenid() {
+        for (int i = 0; i < 10; i++) {
+            String suffix = String.format("%06d", secureRandom.nextInt(1_000_000));
+            String candidate = "adm_wx_" + System.currentTimeMillis() + "_" + suffix;
+            if (userRepository.findByOpenidAndIsDeleted(candidate, 0).isEmpty()) {
+                return candidate;
+            }
+        }
+        throw new BusinessException("生成OpenID失败，请重试");
     }
 
     @Transactional
@@ -58,7 +81,7 @@ public class AdminUserService {
             throw new BusinessException("用户已删除");
         }
         if (!req.getPhone().equals(u.getPhone()) && userRepository.countActiveByPhoneExceptId(req.getPhone(), id) > 0) {
-            throw new BusinessException("手机号已被占用");
+            throw new BusinessException("已有绑定账号");
         }
         u.setPhone(req.getPhone());
         u.setNickname(req.getNickname().trim());

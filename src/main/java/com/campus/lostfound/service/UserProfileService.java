@@ -38,7 +38,7 @@ public class UserProfileService {
     }
 
     @Transactional
-    public void updateProfile(String nickname, String avatarUrl) {
+    public void updateProfile(String nickname, String avatarUrl, String phone) {
         User u = userRepository.findById(UserContext.getUserId()).orElseThrow();
         if (nickname != null && !nickname.isBlank()) {
             String n = nickname.trim();
@@ -51,6 +51,16 @@ public class UserProfileService {
                 throw new BusinessException("头像地址过长，请重新选择头像上传");
             }
             u.setAvatarUrl(a);
+        }
+        if (phone != null && !phone.isBlank()) {
+            String p = phone.trim();
+            if (!p.matches("^1[3-9]\\d{9}$")) {
+                throw new BusinessException("手机号格式不正确");
+            }
+            if (userRepository.countActiveByPhoneExceptId(p, u.getId()) > 0) {
+                throw new BusinessException("已有绑定账号");
+            }
+            u.setPhone(p);
         }
         userRepository.save(u);
     }

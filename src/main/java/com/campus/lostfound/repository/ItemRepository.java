@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
@@ -15,8 +16,11 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     long countByUserIdAndIsDeletedAndStatus(Long userId, int isDeleted, int status);
 
     long countByIsDeletedAndStatus(int isDeleted, int status);
+    long countByIsDeleted(int isDeleted);
+    long countByCategoryIdAndIsDeleted(Long categoryId, int isDeleted);
 
     long countByUserIdAndTypeAndStatusAndIsDeleted(Long userId, Integer type, int status, int isDeleted);
+    long countByCreatedAtBetweenAndIsDeleted(LocalDateTime from, LocalDateTime to, int isDeleted);
 
     @Query("SELECT i FROM Item i WHERE i.isDeleted = 0 AND i.status = :status AND (:type IS NULL OR i.type = :type) AND (:categoryId IS NULL OR i.categoryId = :categoryId) AND (:keyword IS NULL OR :keyword = '' OR i.title LIKE CONCAT('%', :keyword, '%'))")
     Page<Item> findPublished(
@@ -42,4 +46,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @Query("SELECT i FROM Item i WHERE i.isDeleted = 0 AND i.status = 1 AND i.createdAt < :before")
     List<Item> findPublishedBefore(@Param("before") java.time.LocalDateTime before);
+
+    @Query("SELECT FUNCTION('DATE_FORMAT', i.createdAt, '%Y-%m-%d') AS d, COUNT(i.id) " +
+            "FROM Item i WHERE i.isDeleted = 0 AND i.createdAt >= :from GROUP BY FUNCTION('DATE_FORMAT', i.createdAt, '%Y-%m-%d') " +
+            "ORDER BY FUNCTION('DATE_FORMAT', i.createdAt, '%Y-%m-%d')")
+    List<Object[]> trendSince(@Param("from") java.time.LocalDateTime from);
+
+    @Query("SELECT i.categoryId, COUNT(i.id) FROM Item i WHERE i.isDeleted = 0 GROUP BY i.categoryId")
+    List<Object[]> countByCategoryGroup();
 }
